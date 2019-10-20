@@ -1,58 +1,28 @@
 package tk.skmserver.microbitalarm;
 
-import android.bluetooth.*;
 import android.os.Bundle;
-
-import com.google.android.material.floatingactionbutton.FloatingActionButton;
-import com.google.android.material.snackbar.Snackbar;
-import com.google.android.material.tabs.TabLayout;
-
-import androidx.viewpager.widget.ViewPager;
+import com.google.android.material.bottomnavigation.BottomNavigationView;
 import androidx.appcompat.app.AppCompatActivity;
-
-import android.view.Menu;
-import android.view.MenuItem;
-import android.view.View;
-import android.widget.Button;
-import android.widget.EditText;
-import android.widget.TextView;
-
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.util.Set;
-
-import tk.skmserver.microbitalarm.ui.main.SectionsPagerAdapter;
+import androidx.navigation.NavController;
+import androidx.navigation.Navigation;
+import androidx.navigation.ui.AppBarConfiguration;
+import androidx.navigation.ui.NavigationUI;
 
 public class MainActivity extends AppCompatActivity {
-    private static final int REQUEST_ENABLE_BT = 10;
-    private BluetoothAdapter bluetoothAdapter;
-    private Set<BluetoothDevice> devices;
-    private BluetoothDevice bluetoothDevice;
-    private BluetoothSocket bluetoothSocket = null;
-    private OutputStream outputStream = null;
-    private InputStream inputStream = null;
-    private Thread workerThread = null;
-    private byte[] readBuffer;
-    private int readBufferPosition;
-    private TextView textViewReceive;
-    private EditText editTextSend;
-    private Button buttonSend;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        SectionsPagerAdapter sectionsPagerAdapter = new SectionsPagerAdapter(this, getSupportFragmentManager());
-        ViewPager viewPager = findViewById(R.id.view_pager);
-        viewPager.setAdapter(sectionsPagerAdapter);
-        TabLayout tabs = findViewById(R.id.tabs);
-        tabs.setupWithViewPager(viewPager);
-
-        bluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
-
-        textViewReceive = (TextView)findViewById(R.id.textView_receive);
-
-        editTextSend = (EditText)findViewById(R.id.editText_send);
-
-        buttonSend = (Button)findViewById(R.id.button_send);
+        BottomNavigationView navView = findViewById(R.id.nav_view);
+        // Passing each menu ID as a set of Ids because each
+        // menu should be considered as top level destinations.
+        AppBarConfiguration appBarConfiguration = new AppBarConfiguration.Builder(
+                R.id.navigation_home, R.id.navigation_music)
+                .build();
+        NavController navController = Navigation.findNavController(this, R.id.nav_host_fragment);
+        NavigationUI.setupActionBarWithNavController(this, navController, appBarConfiguration);
+        NavigationUI.setupWithNavController(navView, navController);
     }
+
 }
