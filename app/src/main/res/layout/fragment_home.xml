@@ -20,7 +20,7 @@
         app:layout_constraintTop_toTopOf="parent"/>
 
     <Switch
-        android:id="@+id/connect"
+        android:id="@+id/switch_connect"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginStart="8dp"
@@ -45,7 +45,7 @@
         android:textAlignment="center"
         app:layout_constraintBottom_toTopOf="@+id/listDevice"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toEndOf="@+id/connect"
-        app:layout_constraintTop_toTopOf="@+id/connect" />
+        app:layout_constraintStart_toEndOf="@+id/switch_connect"
+        app:layout_constraintTop_toTopOf="@+id/switch_connect" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>
