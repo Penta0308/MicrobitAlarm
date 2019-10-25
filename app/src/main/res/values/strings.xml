@@ -1,3 +1,4 @@
 <resources>
     <string name="app_name">Microbit Alarm</string>
+    <string name="device_name">PENTA0308-E402N</string>
 </resources>
