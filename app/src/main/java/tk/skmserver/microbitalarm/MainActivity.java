@@ -13,19 +13,27 @@ import android.widget.Toast;
 import java.util.List;
 
 import com.harrysoft.androidbluetoothserial.BluetoothManager;
+import com.harrysoft.androidbluetoothserial.BluetoothSerialDevice;
+import com.harrysoft.androidbluetoothserial.SimpleBluetoothDeviceInterface;
+
+import io.reactivex.android.schedulers.AndroidSchedulers;
+import io.reactivex.schedulers.Schedulers;
 
 public class MainActivity extends AppCompatActivity {
 
-    public TextView textBTstate;
+    public TextView textView_btstate;
     public static BluetoothManager bluetoothManager;
+    protected String targetMAC;
 
     class colorSwitchListener implements CompoundButton.OnCheckedChangeListener{
         @Override
         public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
             if(isChecked) {
-                textBTstate.setText("Connected");
+                bluetoothManager.openSerialDevice(targetMAC);
+                textView_btstate.setText("Connected");
             } else {
-                textBTstate.setText("Disconnected");
+                bluetoothManager.closeDevice(targetMAC);
+                textView_btstate.setText("Disconnected");
             }
         }
     }
@@ -45,12 +53,19 @@ public class MainActivity extends AppCompatActivity {
         Switch connect = findViewById(R.id.switch_connect);
         connect.setOnCheckedChangeListener(new colorSwitchListener());
 
-        textBTstate = findViewById(R.id.textView_btstate);
+        textView_btstate = findViewById(R.id.textView_btstate);
 
         List<BluetoothDevice> pairedDevices = MainActivity.bluetoothManager.getPairedDevicesList();
         for (BluetoothDevice device : pairedDevices) {
             Log.d("My Bluetooth App", "Device name: " + device.getName());
             Log.d("My Bluetooth App", "Device MAC Address: " + device.getAddress());
+            if(device.getName().compareTo(getText(R.string.device_name).toString()) == 0) targetMAC = device.getAddress();
         }
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        bluetoothManager.closeDevice(targetMAC);
     }
 }
