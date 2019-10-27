@@ -5,4 +5,6 @@
     <string name="btswitch_connect">Bluetooth </string>
     <string name="musicbutton_select">Upload</string>
     <string name="music_opentitle">Open</string>
+    <string name="light_on">On</string>
+    <string name="light_off">Off</string>
 </resources>
