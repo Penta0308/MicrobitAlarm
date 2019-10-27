@@ -8,7 +8,7 @@ Including Features :
 * Setting alarm time
 
 Format :
-* `;m \"<filename>\" <Base64 length>\r\n<Base64 Data>\r\n` Upload Music File
+* `;m \"<filename>\" <FileSize> <BlockCount>\r\n`, `;d <BlockNum> <Base64Data>` Upload Music File
 * `;t <UNIX timestamp>\r\n` Set time
 * `;a <UNIX timestamp> \"<filename>\"\r\n` Set alarm
 * `;n\r\n` On
