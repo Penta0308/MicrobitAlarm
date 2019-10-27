@@ -5,6 +5,7 @@ import androidx.core.app.ActivityCompat;
 
 import android.Manifest;
 import android.app.Activity;
+import android.app.TimePickerDialog;
 import android.bluetooth.BluetoothDevice;
 import android.content.Intent;
 import android.content.pm.PackageManager;
@@ -18,17 +19,23 @@ import android.widget.CompoundButton;
 import android.widget.ProgressBar;
 import android.widget.Switch;
 import android.widget.TextView;
+import android.widget.TimePicker;
 import android.widget.Toast;
 
 import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
+import java.util.Date;
 import java.util.List;
 
 import com.harrysoft.androidbluetoothserial.BluetoothManager;
 import com.harrysoft.androidbluetoothserial.BluetoothSerialDevice;
 import com.harrysoft.androidbluetoothserial.SimpleBluetoothDeviceInterface;
+
+import org.jetbrains.annotations.NotNull;
 
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.schedulers.Schedulers;
@@ -44,6 +51,7 @@ public class MainActivity extends AppCompatActivity {
     final static int UPLOADFILEOPEN_REQUESTCODE = 1;
     final static int BLOCKSIZE = 4096;
     private TransmitTask tt;
+    protected boolean isconnected = false;
 
     private static String[] PERMISSIONS_STORAGE = {
             Manifest.permission.READ_EXTERNAL_STORAGE,
@@ -55,6 +63,7 @@ public class MainActivity extends AppCompatActivity {
         FileInputStream fp;
         BufferedInputStream bi;
         int filesize;
+        boolean ready = false;
 
         @Override
         protected void onPreExecute() {
@@ -90,16 +99,15 @@ public class MainActivity extends AppCompatActivity {
                         deviceInterface.sendMessage(";m \"" + data[0].getData().toString().split(":")[1] + "\" " + String.valueOf((int)Math.ceil(filesize / BLOCKSIZE) * BLOCKSIZE) + " " + String.valueOf((int)Math.ceil(filesize / BLOCKSIZE)) +"\r\n");
                     deviceInterface.sendMessage(";d " + String.valueOf(n) + " " + readydata + "\r\n");
                     publishProgress(n);
+                    deviceInterface.setMessageSentListener(message -> onFileMessageSent(message));
+                    while(!ready);
+                    ready = false;
                 }
             return 0;
         }
 
         @Override
-        protected void onProgressUpdate(@org.jetbrains.annotations.NotNull Integer... progress) {
-            ProgressBar pbar = findViewById(R.id.progressBar_upload);
-            setpbar(progress[0] * BLOCKSIZE);
-            // 파일 다운로드 퍼센티지 표시 작업
-        }
+        protected void onProgressUpdate(@NotNull Integer... progress) { setpbar((progress[0]) * BLOCKSIZE);  }
 
         @Override
         protected void onPostExecute(Integer result) {
@@ -109,6 +117,11 @@ public class MainActivity extends AppCompatActivity {
             } catch (IOException e) {
                 e.printStackTrace();
             }
+            deviceInterface.setMessageSentListener(message -> MainActivity.this.onMessageSent(message));
+        }
+
+        protected void onFileMessageSent(String message) {
+            ready = true;
         }
     }
 
@@ -127,8 +140,9 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    private void onConnected(BluetoothSerialDevice connectedDevice) {
+    private void onConnected(@NotNull BluetoothSerialDevice connectedDevice) {
         textView_btstate.setText("Connected");
+        isconnected = true;
         // You are now connected to this device!
         // Here you may want to retain an instance to your device:
         deviceInterface = connectedDevice.toSimpleDeviceInterface();
@@ -137,7 +151,7 @@ public class MainActivity extends AppCompatActivity {
         deviceInterface.setListeners(this::onMessageReceived, this::onMessageSent, this::onError);
 
         // Let's send a message:
-        deviceInterface.sendMessage("Hello world!\r\n");
+        //deviceInterface.sendMessage("Hello world!\r\n");
     }
 
     private void onMessageSent(String message) {
@@ -151,13 +165,14 @@ public class MainActivity extends AppCompatActivity {
         Toast.makeText(getApplicationContext(), "Received a message! Message was: " + message, Toast.LENGTH_LONG).show(); // Replace context with your context instance.
     }
 
-    private void onError(Throwable error) {
+    private void onError(@NotNull Throwable error) {
         // Handle the error
         Log.e("Microbit Alarm", "Error: " + error.getMessage());
         if(error.getMessage().equals("java.io.IOException: read failed, socket might closed or timeout, read ret: -1")) {
             Switch connect = findViewById(R.id.switch_connect);
             connect.setChecked(false);
             textView_btstate.setText("Disconnected");
+            isconnected = false;
         }
     }
 
@@ -172,6 +187,7 @@ public class MainActivity extends AppCompatActivity {
             } else {
                 bluetoothManager.closeDevice(targetMAC);
                 textView_btstate.setText("Disconnected");
+                isconnected = false;
             }
         }
     }
@@ -179,6 +195,10 @@ public class MainActivity extends AppCompatActivity {
     class uploadButtonListener implements Button.OnClickListener {
         @Override
         public void onClick(View view) {
+            if(!isconnected) {
+                Toast.makeText(getApplicationContext(), "Turn On Bluetooth First", Toast.LENGTH_LONG).show();
+                return;
+            }
             Intent i = new Intent(Intent.ACTION_GET_CONTENT);
             i.setType("audio/*");
             i.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
@@ -190,11 +210,46 @@ public class MainActivity extends AppCompatActivity {
         @Override
         public void onClick(View view) {
             if(R.id.button_on == view.getId()) {
+                if(!isconnected) {
+                    Toast.makeText(getApplicationContext(), "Turn On Bluetooth First", Toast.LENGTH_LONG).show();
+                    return;
+                }
                 deviceInterface.sendMessage(";n\r\n");
             } else if(R.id.button_off == view.getId()) {
+                if(!isconnected) {
+                    Toast.makeText(getApplicationContext(), "Turn On Bluetooth First", Toast.LENGTH_LONG).show();
+                    return;
+                }
                 deviceInterface.sendMessage(";f\r\n");
             }
         }
+    }
+
+    class alarmButtonListener implements Button.OnClickListener {
+        @Override
+        public void onClick(View view) {
+            if(!isconnected) {
+                Toast.makeText(getApplicationContext(), "Turn On Bluetooth First", Toast.LENGTH_LONG).show();
+                return;
+            }
+            showTime();
+        }
+    }
+
+    void showTime() {
+        Calendar nday = Calendar.getInstance();
+        nday.setTimeInMillis(System.currentTimeMillis());
+        TimePickerDialog timePickerDialog = new TimePickerDialog(this, new TimePickerDialog.OnTimeSetListener() {
+            @Override
+            public void onTimeSet(TimePicker view, int h, int m) {
+                Calendar day = Calendar.getInstance();
+                nday.setTimeInMillis(System.currentTimeMillis());
+                day.set(day.get(Calendar.YEAR), day.get(Calendar.MONTH), day.get(Calendar.DATE), h, m);
+                if(day.getTimeInMillis() < nday.getTimeInMillis()) day.set(Calendar.DAY_OF_YEAR, day.get(Calendar.DAY_OF_YEAR) + 1);
+                deviceInterface.sendMessage(";a " + String.valueOf((day.getTimeInMillis() - nday.getTimeInMillis()) / 1000) + "\r\n");
+            }
+        }, nday.get(Calendar.HOUR_OF_DAY), nday.get(Calendar.MINUTE), true);
+        timePickerDialog.show();
     }
 
     @Override
@@ -204,7 +259,6 @@ public class MainActivity extends AppCompatActivity {
 
         bluetoothManager = BluetoothManager.getInstance();
         if (bluetoothManager == null) {
-            // Bluetooth unavailable on this device :( tell the user
             Toast.makeText(getApplicationContext(), "Bluetooth not available.", Toast.LENGTH_LONG).show(); // Replace context with your context instance.
             finish();
         }
@@ -227,6 +281,9 @@ public class MainActivity extends AppCompatActivity {
 
         Button off = findViewById(R.id.button_off);
         off.setOnClickListener(new lightButtonListener());
+
+        Button alarm = findViewById(R.id.button_alarm);
+        alarm.setOnClickListener(new alarmButtonListener());
 
         textView_btstate = findViewById(R.id.textView_btstate);
 
