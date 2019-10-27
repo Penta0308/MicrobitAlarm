@@ -8,10 +8,9 @@ import android.app.Activity;
 import android.bluetooth.BluetoothDevice;
 import android.content.Intent;
 import android.content.pm.PackageManager;
-import android.graphics.Color;
-import android.net.Uri;
+import android.os.AsyncTask;
 import android.os.Bundle;
-import android.os.Environment;
+import android.util.Base64;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
@@ -21,6 +20,10 @@ import android.widget.Switch;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import java.io.BufferedInputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
 import java.util.List;
 
 import com.harrysoft.androidbluetoothserial.BluetoothManager;
@@ -34,18 +37,80 @@ import nl.bravobit.ffmpeg.FFmpeg;
 import nl.bravobit.ffmpeg.exceptions.FFmpegCommandAlreadyRunningException;
 
 public class MainActivity extends AppCompatActivity {
-
-    public TextView textView_btstate;
-    public static BluetoothManager bluetoothManager;
+    private TextView textView_btstate;
+    private static BluetoothManager bluetoothManager;
     protected String targetMAC;
-    private SimpleBluetoothDeviceInterface deviceInterface;
+    private static SimpleBluetoothDeviceInterface deviceInterface;
     final static int UPLOADFILEOPEN_REQUESTCODE = 1;
+    final static int BLOCKSIZE = 4096;
+    private TransmitTask tt;
 
     private static String[] PERMISSIONS_STORAGE = {
             Manifest.permission.READ_EXTERNAL_STORAGE,
             Manifest.permission.WRITE_EXTERNAL_STORAGE,
     };
     private static final int REQUEST_EXTERNAL_STORAGE = 1;
+
+    private class TransmitTask extends AsyncTask<Intent, Integer, Integer> {
+        FileInputStream fp;
+        BufferedInputStream bi;
+        int filesize;
+
+        @Override
+        protected void onPreExecute() {
+            super.onPreExecute();
+            File fop = new File(getCacheDir().getAbsolutePath() + "/encoded.raw");
+            if(!fop.exists()) return;
+            filesize = (int)fop.length();
+            Log.d("Microbit Alarm", String.valueOf(filesize));
+            try {
+                fp = new FileInputStream(getCacheDir().getAbsolutePath() + "/encoded.raw");
+            } catch(IOException e) {
+                e.printStackTrace();
+            }
+            bi = new BufferedInputStream(fp);
+            ProgressBar pbar = findViewById(R.id.progressBar_upload);
+            pbar.setMax(filesize);
+        }
+
+        @Override
+        protected Integer doInBackground(Intent... data) {
+            // 전달된 URL 사용 작업
+                for(int n = 0; n * BLOCKSIZE < filesize; n++) {
+                    byte[] readraw = new byte[BLOCKSIZE];
+                    try {
+                        bi.read(readraw);
+                    } catch(IOException e) {
+                        e.printStackTrace();
+                    }
+                    String readydata = Base64.encodeToString(readraw, Base64.DEFAULT);
+                    Log.d("Microbit Alarm", String.valueOf(n * BLOCKSIZE));
+                    setpbar(n * BLOCKSIZE);
+                    if(n == 0)
+                        deviceInterface.sendMessage(";m \"" + data[0].getData().toString().split(":")[1] + "\" " + String.valueOf((int)Math.ceil(filesize / BLOCKSIZE) * BLOCKSIZE) + " " + String.valueOf((int)Math.ceil(filesize / BLOCKSIZE)) +"\r\n");
+                    deviceInterface.sendMessage(";d " + String.valueOf(n) + " " + readydata + "\r\n");
+                    publishProgress(n);
+                }
+            return 0;
+        }
+
+        @Override
+        protected void onProgressUpdate(@org.jetbrains.annotations.NotNull Integer... progress) {
+            ProgressBar pbar = findViewById(R.id.progressBar_upload);
+            setpbar(progress[0] * BLOCKSIZE);
+            // 파일 다운로드 퍼센티지 표시 작업
+        }
+
+        @Override
+        protected void onPostExecute(Integer result) {
+            try {
+                bi.close();
+                fp.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+    }
 
     public static void verifyStoragePermissions(Activity activity) {
         // Check if we have write permission
@@ -72,12 +137,13 @@ public class MainActivity extends AppCompatActivity {
         deviceInterface.setListeners(this::onMessageReceived, this::onMessageSent, this::onError);
 
         // Let's send a message:
-        deviceInterface.sendMessage("Hello world!");
+        deviceInterface.sendMessage("Hello world!\r\n");
     }
 
     private void onMessageSent(String message) {
         // We sent a message! Handle it here.
-        Toast.makeText(getApplicationContext(), "Sent a message! Message was: " + message, Toast.LENGTH_LONG).show(); // Replace context with your context instance.
+        //Toast.makeText(getApplicationContext(), "Sent a message! Message was: " + message, Toast.LENGTH_LONG).show(); // Replace context with your context instance.
+        Toast.makeText(getApplicationContext(), "Sent a message!", Toast.LENGTH_LONG).show(); // Replace context with your context instance.
     }
 
     private void onMessageReceived(String message) {
@@ -120,6 +186,17 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    class lightButtonListener implements Button.OnClickListener {
+        @Override
+        public void onClick(View view) {
+            if(R.id.button_on == view.getId()) {
+                deviceInterface.sendMessage(";n\r\n");
+            } else if(R.id.button_off == view.getId()) {
+                deviceInterface.sendMessage(";f\r\n");
+            }
+        }
+    }
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -145,6 +222,12 @@ public class MainActivity extends AppCompatActivity {
         Button upload = findViewById(R.id.button_upload);
         upload.setOnClickListener(new uploadButtonListener());
 
+        Button on = findViewById(R.id.button_on);
+        on.setOnClickListener(new lightButtonListener());
+
+        Button off = findViewById(R.id.button_off);
+        off.setOnClickListener(new lightButtonListener());
+
         textView_btstate = findViewById(R.id.textView_btstate);
 
         List<BluetoothDevice> pairedDevices = MainActivity.bluetoothManager.getPairedDevicesList();
@@ -158,6 +241,16 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    protected void onPause() {
+        super.onPause();
+//        bluetoothManager.closeDevice(targetMAC);
+    }
+
+    protected void setpbar(int a) {
+        ProgressBar pbar = findViewById(R.id.progressBar_upload);
+        pbar.setProgress(a);
+    }
+
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
@@ -166,7 +259,7 @@ public class MainActivity extends AppCompatActivity {
         if(requestCode == UPLOADFILEOPEN_REQUESTCODE) {
             if(resultCode == -1) {
                 Log.d("Microbit Alarm", "Path: " + data.getDataString());
-                String [] command = {"-i", URLFilepath.getPath(getApplicationContext(), data.getData()), "-c:a", "pcm_u8", "-ac", "1", "-ar", "32500", Environment.getExternalStorageDirectory().getAbsolutePath() + "/testfile.wav"};
+                String [] command = {"-i", URLFilepath.getPath(getApplicationContext(), data.getData()), "-c:a", "pcm_u8", "-ac", "1", "-f", "u8", "-ar", "32500", "-y", getCacheDir().getAbsolutePath() + "/encoded.raw"};
                 FFmpeg ffmpeg = FFmpeg.getInstance(getApplicationContext());
                 try {
                     // to execute "ffmpeg -version" command you just need to pass "-version"
@@ -188,6 +281,8 @@ public class MainActivity extends AppCompatActivity {
                         @Override
                         public void onSuccess(String message) {
                             Log.d("Microbit Alarm", message);
+                            tt = new TransmitTask();
+                            tt.execute(data);
                         }
 
                         @Override
@@ -201,6 +296,13 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    protected void onResume() {
+        super.onResume();
+/*        bluetoothManager.openSerialDevice(targetMAC)
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(MainActivity.this::onConnected, MainActivity.this::onError);*/
+    }
     @Override
     protected void onDestroy() {
         super.onDestroy();
