@@ -9,8 +9,7 @@ Including Features :
 
 Format :
 * `;m \"<filename>\" <FileSize> <BlockCount>\r\n`, `;d <BlockNum> <Base64Data>` Upload Music File
-* `;t <UNIX timestamp>\r\n` Set time
-* `;a <UNIX timestamp> \"<filename>\"\r\n` Set alarm
+* `;a <Delta Second> \"<filename>\"\r\n` Set alarm
 * `;n\r\n` On
 * `;f\r\n` Off
 
