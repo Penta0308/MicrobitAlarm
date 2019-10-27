@@ -17,4 +17,4 @@ Format :
 
 FFmpeg-android : https://github.com/brarcher/ffmpeg-android-java
 
-BluetoothSerial : https://github.com/jpetrocik/bluetoothserial
+BluetoothSerial : https://github.com/harry1453/android-bluetooth-serial
