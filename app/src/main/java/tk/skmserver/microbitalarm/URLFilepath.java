@@ -9,6 +9,9 @@ import android.os.Environment;
 import android.provider.DocumentsContract;
 import android.provider.MediaStore;
 
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
 public class URLFilepath {
     /**
      * Get a file path from a Uri. This will get the the path for Storage Access
@@ -19,6 +22,7 @@ public class URLFilepath {
      * @param uri The Uri to query.
      * @author paulburke
      */
+    @Nullable
     public static String getPath(final Context context, final Uri uri) {
 
         //final boolean isKitKat = Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT;
@@ -33,7 +37,7 @@ public class URLFilepath {
                 final String type = split[0];
 
                 if ("primary".equalsIgnoreCase(type)) {
-                    return Environment.getExternalStorageDirectory() + "/" + split[1];
+                    return context.getExternalFilesDir(null).getAbsolutePath() + "/" + split[1];
                 }
 
                 // TODO handle non-primary volumes
@@ -92,6 +96,7 @@ public class URLFilepath {
      * @param selectionArgs (Optional) Selection arguments used in the query.
      * @return The value of the _data column, which is typically a file path.
      */
+    @Nullable
     public static String getDataColumn(Context context, Uri uri, String selection,
                                        String[] selectionArgs) {
 
@@ -120,7 +125,7 @@ public class URLFilepath {
      * @param uri The Uri to check.
      * @return Whether the Uri authority is ExternalStorageProvider.
      */
-    public static boolean isExternalStorageDocument(Uri uri) {
+    public static boolean isExternalStorageDocument(@NotNull Uri uri) {
         return "com.android.externalstorage.documents".equals(uri.getAuthority());
     }
 
@@ -128,7 +133,7 @@ public class URLFilepath {
      * @param uri The Uri to check.
      * @return Whether the Uri authority is DownloadsProvider.
      */
-    public static boolean isDownloadsDocument(Uri uri) {
+    public static boolean isDownloadsDocument(@NotNull Uri uri) {
         return "com.android.providers.downloads.documents".equals(uri.getAuthority());
     }
 
@@ -136,7 +141,7 @@ public class URLFilepath {
      * @param uri The Uri to check.
      * @return Whether the Uri authority is MediaProvider.
      */
-    public static boolean isMediaDocument(Uri uri) {
+    public static boolean isMediaDocument(@NotNull Uri uri) {
         return "com.android.providers.media.documents".equals(uri.getAuthority());
     }
 }
