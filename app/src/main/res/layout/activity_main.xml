@@ -6,65 +6,95 @@
     android:layout_height="match_parent"
     tools:context=".MainActivity">
 
-    <Button
-        android:id="@+id/button_off"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="@string/light_off"
-        app:layout_constraintStart_toEndOf="@+id/button_on"
-        app:layout_constraintTop_toTopOf="@+id/button_on" />
-
     <Switch
         android:id="@+id/switch_connect"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_marginStart="8dp"
+        android:layout_marginTop="8dp"
         android:text="@string/btswitch_connect"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
-
-    <LinearLayout
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:orientation="vertical"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent">
-
-        <TextView
-            android:id="@+id/textView_btstate"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:background="#6200EE"
-            android:text="@string/btstate_disconnected"
-            android:textAlignment="center"
-            android:textColor="#FFFFFF"
-            android:textStyle="italic" />
-
-    </LinearLayout>
+        app:layout_constraintTop_toBottomOf="@+id/imageView" />
 
     <Button
-        android:id="@+id/button_upload"
+        android:id="@+id/button_on"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="@string/musicbutton_select"
+        android:layout_marginEnd="8dp"
+        android:text="@string/light_on"
+        app:layout_constraintEnd_toStartOf="@+id/button_off"
+        app:layout_constraintTop_toTopOf="@+id/button_off" />
+
+    <Button
+        android:id="@+id/button_alarm"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="8dp"
+        android:layout_marginTop="16dp"
+        android:text="@string/alarm"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/switch_connect" />
+        app:layout_constraintTop_toBottomOf="@+id/progressBar_upload" />
 
     <ProgressBar
         android:id="@+id/progressBar_upload"
         style="?android:attr/progressBarStyleHorizontal"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
+        android:layout_marginStart="16dp"
+        android:layout_marginEnd="16dp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/button_upload" />
 
     <Button
-        android:id="@+id/button_on"
+        android:id="@+id/button_off"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="@string/light_on"
-        app:layout_constraintStart_toStartOf="parent"
+        android:layout_marginTop="16dp"
+        android:layout_marginEnd="8dp"
+        android:text="@string/light_off"
+        app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/progressBar_upload" />
+
+    <Button
+        android:id="@+id/button_upload"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:layout_marginEnd="8dp"
+        android:text="@string/musicbutton_select"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/imageView" />
+
+    <TextView
+        android:id="@+id/textView_btstate"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="#6200EE"
+        android:text="@string/btstate_disconnected"
+        android:textAlignment="center"
+        android:textColor="#FFFFFF"
+        android:textSize="18sp"
+        android:textStyle="italic"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent" />
+
+    <ImageView
+        android:id="@+id/imageView"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="8dp"
+        android:layout_marginTop="8dp"
+        android:layout_marginEnd="8dp"
+        android:adjustViewBounds="true"
+        android:clickable="false"
+        android:contentDescription="@string/jyplhj"
+        android:contextClickable="false"
+        android:cropToPadding="false"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:srcCompat="@drawable/jyplogo" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>
