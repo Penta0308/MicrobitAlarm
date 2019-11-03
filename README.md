@@ -8,8 +8,9 @@ Including Features :
 * Setting alarm time
 
 Format :
-* `;m \"<filename>\" <FileSize> <BlockCount>\r\n`, `;d <BlockNum> <Base64Data>` Upload Music File
-* `;a <Delta Second> \"<filename>\"\r\n` Set alarm
+* `;m <FileSize> <BlockCount>\r\n` Set Music File
+* `;d <BlockNum> <Base64Data>` Upload Music File
+* `;a <Delta Second>\r\n` Set alarm
 * `;n\r\n` On
 * `;f\r\n` Off
 
