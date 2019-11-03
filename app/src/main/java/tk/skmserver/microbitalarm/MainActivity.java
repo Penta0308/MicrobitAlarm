@@ -96,7 +96,7 @@ public class MainActivity extends AppCompatActivity {
                     Log.d("Microbit Alarm", String.valueOf(n * BLOCKSIZE));
                     setpbar(n * BLOCKSIZE);
                     if(n == 0)
-                        deviceInterface.sendMessage(";m \"" + data[0].getData().toString().split(":")[1] + "\" " + String.valueOf((int)Math.ceil(filesize / BLOCKSIZE) * BLOCKSIZE) + " " + String.valueOf((int)Math.ceil(filesize / BLOCKSIZE)) +"\r\n");
+                        deviceInterface.sendMessage(";m " + String.valueOf((int)Math.ceil(filesize / BLOCKSIZE) * BLOCKSIZE) + " " + String.valueOf((int)Math.ceil(filesize / BLOCKSIZE)) +"\r\n");
                     deviceInterface.sendMessage(";d " + String.valueOf(n) + " " + readydata + "\r\n");
                     publishProgress(n);
                     deviceInterface.setMessageSentListener(message -> onFileMessageSent(message));
