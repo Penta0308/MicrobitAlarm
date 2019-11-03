@@ -316,7 +316,7 @@ public class MainActivity extends AppCompatActivity {
         if(requestCode == UPLOADFILEOPEN_REQUESTCODE) {
             if(resultCode == -1) {
                 Log.d("Microbit Alarm", "Path: " + data.getDataString());
-                String [] command = {"-i", URLFilepath.getPath(getApplicationContext(), data.getData()), "-c:a", "pcm_u8", "-ac", "1", "-f", "u8", "-ar", "32500", "-y", getCacheDir().getAbsolutePath() + "/encoded.raw"};
+                String [] command = {"-i", URLFilepath.getPath(getApplicationContext(), data.getData()), "-c:a", "pcm_u8", "-ac", "1", "-f", "u8", "-ar", "32000", "-y", getCacheDir().getAbsolutePath() + "/encoded.raw"};
                 FFmpeg ffmpeg = FFmpeg.getInstance(getApplicationContext());
                 try {
                     // to execute "ffmpeg -version" command you just need to pass "-version"
