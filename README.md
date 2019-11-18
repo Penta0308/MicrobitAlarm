@@ -8,11 +8,11 @@ Including Features :
 * Setting alarm time
 
 Format :
-* `;m <FileSize> <BlockCount>\r\n` Set Music File
-* `;d <BlockNum> <Base64Data>` Upload Music File
-* `;a <Delta Second>\r\n` Set alarm
-* `;n\r\n` On
-* `;f\r\n` Off
+* `;m <FileSize> <BlockCount>\n` Set Music File
+* `;d <BlockNum> <Base64Data>\n` Upload Music File
+* `;a <Delta Second>\n` Set alarm
+* `;n\n` On
+* `;f\n` Off
 
 
 FFmpeg-android : https://github.com/brarcher/ffmpeg-android-java
