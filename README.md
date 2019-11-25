@@ -8,10 +8,9 @@ Including Features :
 * Setting alarm time
 
 Format :
-* `m <FolderName>\n` Play Music
+* `m <Folder Name>\n` Play Music
 * `a <Delta Second>\n ~~~ \na\n` Set alarm(transaction)
-* `n\n` On
-* `f\n` Off
+* `s <Angle>\n` Set Servo Angle
 * `p <ms>\n` Pause Millisecond
 
 
