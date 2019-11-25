@@ -9,7 +9,9 @@ Including Features :
 
 Format :
 * `m <FolderName>\n` Play Music
-* `a <Delta Second>\n~~~;a\n` Set alarm(transaction)
+* `a <Delta Second>\n
+~~~
+a\n` Set alarm(transaction)
 * `n\n` On
 * `f\n` Off
 * `p <ms>\n` Pause Millisecond
