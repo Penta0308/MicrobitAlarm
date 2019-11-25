@@ -9,7 +9,7 @@ Including Features :
 
 Format :
 * `m <Folder Name>\n` Play Music
-* `a <Delta Second>\n ~~~ \na\n` Set alarm(transaction)
+* `a <Delta Second>\n ~~~ \ne\n` Set alarm(transaction)
 * `s <Angle>\n` Set Servo Angle
 * `p <ms>\n` Pause Millisecond
 
