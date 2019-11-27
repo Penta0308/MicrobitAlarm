@@ -8,10 +8,10 @@ Including Features :
 * Setting alarm time
 
 Format :
-* `m <Folder Name>\n` Play Music
-* `a <Delta Second>\n ~~~ \ne\n` Set alarm(transaction)
-* `s <Angle>\n` Set Servo Angle
-* `p <ms>\n` Pause Millisecond
+* `m<Folder Name>\n` Play Music
+* `a<Delta Second>\n ~~~ \ne\n` Set alarm(transaction)
+* `s<Angle>\n` Set Servo Angle
+* `p<ms>\n` Pause Millisecond
 
 
 FFmpeg-android : https://github.com/brarcher/ffmpeg-android-java
