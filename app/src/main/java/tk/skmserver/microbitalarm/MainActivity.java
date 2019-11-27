@@ -1,369 +1,353 @@
 package tk.skmserver.microbitalarm;
 
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.app.ActivityCompat;
-
 import android.Manifest;
-import android.app.Activity;
-import android.app.TimePickerDialog;
+import android.app.AlertDialog;
+import android.app.Notification;
+import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
+import android.bluetooth.BluetoothGatt;
+import android.bluetooth.BluetoothGattCallback;
+import android.bluetooth.BluetoothGattCharacteristic;
+import android.bluetooth.BluetoothGattService;
+import android.bluetooth.BluetoothManager;
+import android.bluetooth.le.BluetoothLeScanner;
+import android.bluetooth.le.ScanCallback;
+import android.bluetooth.le.ScanResult;
+import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.net.Uri;
 import android.os.AsyncTask;
+import android.os.Handler;
+//import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
-import android.util.Base64;
-import android.util.Log;
+import android.text.method.ScrollingMovementMethod;
 import android.view.View;
 import android.widget.Button;
-import android.widget.CompoundButton;
-import android.widget.ProgressBar;
-import android.widget.Switch;
+import android.widget.EditText;
 import android.widget.TextView;
-import android.widget.TimePicker;
-import android.widget.Toast;
 
-import java.io.BufferedInputStream;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.text.SimpleDateFormat;
-import java.util.Calendar;
-import java.util.Date;
+//import com.google.android.gms.appindexing.Action;
+//import com.google.android.gms.appindexing.AppIndex;
+//import com.google.android.gms.common.api.GoogleApiClient;
+
+import androidx.appcompat.app.AppCompatActivity;
+
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
-
-import com.harrysoft.androidbluetoothserial.BluetoothManager;
-import com.harrysoft.androidbluetoothserial.BluetoothSerialDevice;
-import com.harrysoft.androidbluetoothserial.SimpleBluetoothDeviceInterface;
-
-import org.jetbrains.annotations.NotNull;
-
-import io.reactivex.android.schedulers.AndroidSchedulers;
-import io.reactivex.schedulers.Schedulers;
-import nl.bravobit.ffmpeg.ExecuteBinaryResponseHandler;
-import nl.bravobit.ffmpeg.FFmpeg;
-import nl.bravobit.ffmpeg.exceptions.FFmpegCommandAlreadyRunningException;
+import java.util.Map;
 
 public class MainActivity extends AppCompatActivity {
-    private TextView textView_btstate;
-    private static BluetoothManager bluetoothManager;
-    protected String targetMAC;
-    private static SimpleBluetoothDeviceInterface deviceInterface;
-    final static int UPLOADFILEOPEN_REQUESTCODE = 1;
-    final static int BLOCKSIZE = 4096;
-    private TransmitTask tt;
-    protected boolean isconnected = false;
 
-    private static String[] PERMISSIONS_STORAGE = {
-            Manifest.permission.READ_EXTERNAL_STORAGE,
-            Manifest.permission.WRITE_EXTERNAL_STORAGE,
-    };
-    private static final int REQUEST_EXTERNAL_STORAGE = 1;
+    BluetoothManager btManager;
+    BluetoothAdapter btAdapter;
+    BluetoothLeScanner btScanner;
+    Button startScanningButton;
+    Button stopScanningButton;
+    TextView peripheralTextView;
+    private final static int REQUEST_ENABLE_BT = 1;
+    private static final int PERMISSION_REQUEST_COARSE_LOCATION = 1;
 
-    private class TransmitTask extends AsyncTask<Intent, Integer, Integer> {
-        FileInputStream fp;
-        BufferedInputStream bi;
-        int filesize;
-        boolean ready = false;
+    Boolean btScanning = false;
+    int deviceIndex = 0;
+    ArrayList<BluetoothDevice> devicesDiscovered = new ArrayList<BluetoothDevice>();
+    EditText deviceIndexInput;
+    Button connectToDevice;
+    Button disconnectDevice;
+    BluetoothGatt bluetoothGatt;
 
-        @Override
-        protected void onPreExecute() {
-            super.onPreExecute();
-            File fop = new File(getCacheDir().getAbsolutePath() + "/encoded.raw");
-            if(!fop.exists()) return;
-            filesize = (int)fop.length();
-            Log.d("Microbit Alarm", String.valueOf(filesize));
-            try {
-                fp = new FileInputStream(getCacheDir().getAbsolutePath() + "/encoded.raw");
-            } catch(IOException e) {
-                e.printStackTrace();
-            }
-            bi = new BufferedInputStream(fp);
-            ProgressBar pbar = findViewById(R.id.progressBar_upload);
-            pbar.setMax(filesize);
-        }
+    public final static String ACTION_GATT_CONNECTED =
+            "com.example.bluetooth.le.ACTION_GATT_CONNECTED";
+    public final static String ACTION_GATT_DISCONNECTED =
+            "com.example.bluetooth.le.ACTION_GATT_DISCONNECTED";
+    public final static String ACTION_GATT_SERVICES_DISCOVERED =
+            "com.example.bluetooth.le.ACTION_GATT_SERVICES_DISCOVERED";
+    public final static String ACTION_DATA_AVAILABLE =
+            "com.example.bluetooth.le.ACTION_DATA_AVAILABLE";
+    public final static String EXTRA_DATA =
+            "com.example.bluetooth.le.EXTRA_DATA";
 
-        @Override
-        protected Integer doInBackground(Intent... data) {
-            // 전달된 URL 사용 작업
-                for(int n = 0; n * BLOCKSIZE < filesize; n++) {
-                    byte[] readraw = new byte[BLOCKSIZE];
-                    try {
-                        bi.read(readraw);
-                    } catch(IOException e) {
-                        e.printStackTrace();
-                    }
-                    String readydata = Base64.encodeToString(readraw, Base64.DEFAULT);
-                    Log.d("Microbit Alarm", String.valueOf(n * BLOCKSIZE));
-                    setpbar(n * BLOCKSIZE);
-                    if(n == 0)
-                        deviceInterface.sendMessage(";m " + String.valueOf((int)Math.ceil(filesize / BLOCKSIZE) * BLOCKSIZE) + " " + String.valueOf((int)Math.ceil(filesize / BLOCKSIZE)) +"\r\n");
-                    deviceInterface.sendMessage(";d " + String.valueOf(n) + " " + readydata + "\r\n");
-                    publishProgress(n);
-                    deviceInterface.setMessageSentListener(message -> onFileMessageSent(message));
-                    while(!ready);
-                    ready = false;
-                }
-            return 0;
-        }
+    public Map<String, String> uuids = new HashMap<String, String>();
 
-        @Override
-        protected void onProgressUpdate(@NotNull Integer... progress) { setpbar((progress[0]) * BLOCKSIZE);  }
-
-        @Override
-        protected void onPostExecute(Integer result) {
-            try {
-                bi.close();
-                fp.close();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-            deviceInterface.setMessageSentListener(message -> MainActivity.this.onMessageSent(message));
-        }
-
-        protected void onFileMessageSent(String message) {
-            ready = true;
-        }
-    }
-
-    public static void verifyStoragePermissions(Activity activity) {
-        // Check if we have write permission
-        int permission = ActivityCompat.checkSelfPermission(
-                activity, Manifest.permission.WRITE_EXTERNAL_STORAGE);
-
-        if (permission != PackageManager.PERMISSION_GRANTED) {
-            // We don't have permission so prompt the user
-            ActivityCompat.requestPermissions(
-                    activity,
-                    PERMISSIONS_STORAGE,
-                    REQUEST_EXTERNAL_STORAGE
-            );
-        }
-    }
-
-    private void onConnected(@NotNull BluetoothSerialDevice connectedDevice) {
-        textView_btstate.setText("Connected");
-        isconnected = true;
-        // You are now connected to this device!
-        // Here you may want to retain an instance to your device:
-        deviceInterface = connectedDevice.toSimpleDeviceInterface();
-
-        // Listen to bluetooth events
-        deviceInterface.setListeners(this::onMessageReceived, this::onMessageSent, this::onError);
-
-        // Let's send a message:
-        //deviceInterface.sendMessage("Hello world!\r\n");
-    }
-
-    private void onMessageSent(String message) {
-        // We sent a message! Handle it here.
-        //Toast.makeText(getApplicationContext(), "Sent a message! Message was: " + message, Toast.LENGTH_LONG).show(); // Replace context with your context instance.
-        Toast.makeText(getApplicationContext(), "Sent a message!", Toast.LENGTH_LONG).show(); // Replace context with your context instance.
-    }
-
-    private void onMessageReceived(String message) {
-        // We received a message! Handle it here.
-        Toast.makeText(getApplicationContext(), "Received a message! Message was: " + message, Toast.LENGTH_LONG).show(); // Replace context with your context instance.
-    }
-
-    private void onError(@NotNull Throwable error) {
-        // Handle the error
-        Log.e("Microbit Alarm", "Error: " + error.getMessage());
-        if(error.getMessage().equals("java.io.IOException: read failed, socket might closed or timeout, read ret: -1")) {
-            Switch connect = findViewById(R.id.switch_connect);
-            connect.setChecked(false);
-            textView_btstate.setText("Disconnected");
-            isconnected = false;
-        }
-    }
-
-    class colorSwitchListener implements CompoundButton.OnCheckedChangeListener {
-        @Override
-        public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-            if(isChecked) {
-                bluetoothManager.openSerialDevice(targetMAC)
-                        .subscribeOn(Schedulers.io())
-                        .observeOn(AndroidSchedulers.mainThread())
-                        .subscribe(MainActivity.this::onConnected, MainActivity.this::onError);
-            } else {
-                bluetoothManager.closeDevice(targetMAC);
-                textView_btstate.setText("Disconnected");
-                isconnected = false;
-            }
-        }
-    }
-
-    class uploadButtonListener implements Button.OnClickListener {
-        @Override
-        public void onClick(View view) {
-            if(!isconnected) {
-                Toast.makeText(getApplicationContext(), "Turn On Bluetooth First", Toast.LENGTH_LONG).show();
-                return;
-            }
-            Intent i = new Intent(Intent.ACTION_GET_CONTENT);
-            i.setType("audio/*");
-            i.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
-            startActivityForResult(Intent.createChooser(i, getString(R.string.music_opentitle)), UPLOADFILEOPEN_REQUESTCODE);
-        }
-    }
-
-    class lightButtonListener implements Button.OnClickListener {
-        @Override
-        public void onClick(View view) {
-            if(R.id.button_on == view.getId()) {
-                if(!isconnected) {
-                    Toast.makeText(getApplicationContext(), "Turn On Bluetooth First", Toast.LENGTH_LONG).show();
-                    return;
-                }
-                deviceInterface.sendMessage(";n\r\n");
-            } else if(R.id.button_off == view.getId()) {
-                if(!isconnected) {
-                    Toast.makeText(getApplicationContext(), "Turn On Bluetooth First", Toast.LENGTH_LONG).show();
-                    return;
-                }
-                deviceInterface.sendMessage(";f\r\n");
-            }
-        }
-    }
-
-    class alarmButtonListener implements Button.OnClickListener {
-        @Override
-        public void onClick(View view) {
-            if(!isconnected) {
-                Toast.makeText(getApplicationContext(), "Turn On Bluetooth First", Toast.LENGTH_LONG).show();
-                return;
-            }
-            showTime();
-        }
-    }
-
-    void showTime() {
-        Calendar nday = Calendar.getInstance();
-        nday.setTimeInMillis(System.currentTimeMillis());
-        TimePickerDialog timePickerDialog = new TimePickerDialog(this, new TimePickerDialog.OnTimeSetListener() {
-            @Override
-            public void onTimeSet(TimePicker view, int h, int m) {
-                Calendar day = Calendar.getInstance();
-                nday.setTimeInMillis(System.currentTimeMillis());
-                day.set(day.get(Calendar.YEAR), day.get(Calendar.MONTH), day.get(Calendar.DATE), h, m);
-                if(day.getTimeInMillis() < nday.getTimeInMillis()) day.set(Calendar.DAY_OF_YEAR, day.get(Calendar.DAY_OF_YEAR) + 1);
-                deviceInterface.sendMessage(";a " + String.valueOf((day.getTimeInMillis() - nday.getTimeInMillis()) / 1000) + "\r\n");
-            }
-        }, nday.get(Calendar.HOUR_OF_DAY), nday.get(Calendar.MINUTE), true);
-        timePickerDialog.show();
-    }
+    // Stops scanning after 5 seconds.
+    private Handler mHandler = new Handler();
+    private static final long SCAN_PERIOD = 5000;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        bluetoothManager = BluetoothManager.getInstance();
-        if (bluetoothManager == null) {
-            Toast.makeText(getApplicationContext(), "Bluetooth not available.", Toast.LENGTH_LONG).show(); // Replace context with your context instance.
-            finish();
+        peripheralTextView = (TextView) findViewById(R.id.PeripheralTextView);
+        peripheralTextView.setMovementMethod(new ScrollingMovementMethod());
+        deviceIndexInput = (EditText) findViewById(R.id.InputIndex);
+        deviceIndexInput.setText("0");
+
+        connectToDevice = (Button) findViewById(R.id.ConnectButton);
+        connectToDevice.setOnClickListener(new View.OnClickListener() {
+            public void onClick(View v) {
+                connectToDeviceSelected();
+            }
+        });
+
+        disconnectDevice = (Button) findViewById(R.id.DisconnectButton);
+        disconnectDevice.setVisibility(View.INVISIBLE);
+        disconnectDevice.setOnClickListener(new View.OnClickListener() {
+            public void onClick(View v) {
+                disconnectDeviceSelected();
+            }
+        });
+
+        startScanningButton = (Button) findViewById(R.id.StartScanButton);
+        startScanningButton.setOnClickListener(new View.OnClickListener() {
+            public void onClick(View v) {
+                startScanning();
+            }
+        });
+
+        stopScanningButton = (Button) findViewById(R.id.StopScanButton);
+        stopScanningButton.setOnClickListener(new View.OnClickListener() {
+            public void onClick(View v) {
+                stopScanning();
+            }
+        });
+        stopScanningButton.setVisibility(View.INVISIBLE);
+
+        btManager = (BluetoothManager) getSystemService(Context.BLUETOOTH_SERVICE);
+        btAdapter = btManager.getAdapter();
+        btScanner = btAdapter.getBluetoothLeScanner();
+
+        if (btAdapter != null && !btAdapter.isEnabled()) {
+            Intent enableIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
+            startActivityForResult(enableIntent, REQUEST_ENABLE_BT);
         }
 
-        if (!FFmpeg.getInstance(this).isSupported()) {
-            Toast.makeText(getApplicationContext(), "FFmpeg not available.", Toast.LENGTH_LONG).show(); // Replace context with your context instance.
-            finish();
+        // Make sure we have access coarse location enabled, if not, prompt the user to enable it
+        if (this.checkSelfPermission(Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            final AlertDialog.Builder builder = new AlertDialog.Builder(this);
+            builder.setTitle("This app needs location access");
+            builder.setMessage("Please grant location access so this app can detect peripherals.");
+            builder.setPositiveButton(android.R.string.ok, null);
+            builder.setOnDismissListener(new DialogInterface.OnDismissListener() {
+                @Override
+                public void onDismiss(DialogInterface dialog) {
+                    requestPermissions(new String[]{Manifest.permission.ACCESS_COARSE_LOCATION}, PERMISSION_REQUEST_COARSE_LOCATION);
+                }
+            });
+            builder.show();
+        }
+    }
+
+    // Device scan callback.
+    private ScanCallback leScanCallback = new ScanCallback() {
+        @Override
+        public void onScanResult(int callbackType, ScanResult result) {
+            peripheralTextView.append("Index: " + deviceIndex + ", Device Name: " + result.getDevice().getName() + " rssi: " + result.getRssi() + "\n");
+            devicesDiscovered.add(result.getDevice());
+            deviceIndex++;
+            // auto scroll for text view
+            final int scrollAmount = peripheralTextView.getLayout().getLineTop(peripheralTextView.getLineCount()) - peripheralTextView.getHeight();
+            // if there is no need to scroll, scrollAmount will be <=0
+            if (scrollAmount > 0) {
+                peripheralTextView.scrollTo(0, scrollAmount);
+            }
+        }
+    };
+
+    // Device connect call back
+    private final BluetoothGattCallback btleGattCallback = new BluetoothGattCallback() {
+
+        @Override
+        public void onCharacteristicChanged(BluetoothGatt gatt, final BluetoothGattCharacteristic characteristic) {
+            // this will get called anytime you perform a read or write characteristic operation
+            MainActivity.this.runOnUiThread(new Runnable() {
+                public void run() {
+                    peripheralTextView.append("device read or wrote to\n");
+                }
+            });
         }
 
-        verifyStoragePermissions(this);
+        @Override
+        public void onConnectionStateChange(final BluetoothGatt gatt, final int status, final int newState) {
+            // this will get called when a device connects or disconnects
+            System.out.println(newState);
+            switch (newState) {
+                case 0:
+                    MainActivity.this.runOnUiThread(new Runnable() {
+                        public void run() {
+                            peripheralTextView.append("device disconnected\n");
+                            connectToDevice.setVisibility(View.VISIBLE);
+                            disconnectDevice.setVisibility(View.INVISIBLE);
+                        }
+                    });
+                    break;
+                case 2:
+                    MainActivity.this.runOnUiThread(new Runnable() {
+                        public void run() {
+                            peripheralTextView.append("device connected\n");
+                            connectToDevice.setVisibility(View.INVISIBLE);
+                            disconnectDevice.setVisibility(View.VISIBLE);
+                        }
+                    });
 
-        Switch connect = findViewById(R.id.switch_connect);
-        connect.setOnCheckedChangeListener(new colorSwitchListener());
+                    // discover services and characteristics for this device
+                    bluetoothGatt.discoverServices();
 
-        Button upload = findViewById(R.id.button_upload);
-        upload.setOnClickListener(new uploadButtonListener());
+                    break;
+                default:
+                    MainActivity.this.runOnUiThread(new Runnable() {
+                        public void run() {
+                            peripheralTextView.append("we encounterned an unknown state, uh oh\n");
+                        }
+                    });
+                    break;
+            }
+        }
 
-        Button on = findViewById(R.id.button_on);
-        on.setOnClickListener(new lightButtonListener());
+        @Override
+        public void onServicesDiscovered(final BluetoothGatt gatt, final int status) {
+            // this will get called after the client initiates a 			BluetoothGatt.discoverServices() call
+            MainActivity.this.runOnUiThread(new Runnable() {
+                public void run() {
+                    peripheralTextView.append("device services have been discovered\n");
+                }
+            });
+            displayGattServices(bluetoothGatt.getServices());
+        }
 
-        Button off = findViewById(R.id.button_off);
-        off.setOnClickListener(new lightButtonListener());
+        @Override
+        // Result of a characteristic read operation
+        public void onCharacteristicRead(BluetoothGatt gatt,
+                                         BluetoothGattCharacteristic characteristic,
+                                         int status) {
+            if (status == BluetoothGatt.GATT_SUCCESS) {
+                broadcastUpdate(ACTION_DATA_AVAILABLE, characteristic);
+            }
+        }
+    };
 
-        Button alarm = findViewById(R.id.button_alarm);
-        alarm.setOnClickListener(new alarmButtonListener());
+    private void broadcastUpdate(final String action,
+                                 final BluetoothGattCharacteristic characteristic) {
 
-        textView_btstate = findViewById(R.id.textView_btstate);
+        System.out.println(characteristic.getUuid());
+    }
 
-        List<BluetoothDevice> pairedDevices = MainActivity.bluetoothManager.getPairedDevicesList();
-        for (BluetoothDevice device : pairedDevices) {
-            Log.d("Microbit Alarm", "Device name: " + device.getName());
-            Log.d("Microbit Alarm", "Device MAC Address: " + device.getAddress());
-            if(device.getName().equals(getText(R.string.device_name).toString())){
-                targetMAC = device.getAddress();
-                Log.d("Microbit Alarm", "Target Device MAC Address: " + targetMAC);
+    @Override
+    public void onRequestPermissionsResult(int requestCode, String permissions[], int[] grantResults) {
+        switch (requestCode) {
+            case PERMISSION_REQUEST_COARSE_LOCATION: {
+                if (grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                    System.out.println("coarse location permission granted");
+                } else {
+                    final AlertDialog.Builder builder = new AlertDialog.Builder(this);
+                    builder.setTitle("Functionality limited");
+                    builder.setMessage("Since location access has not been granted, this app will not be able to discover beacons when in the background.");
+                    builder.setPositiveButton(android.R.string.ok, null);
+                    builder.setOnDismissListener(new DialogInterface.OnDismissListener() {
+
+                        @Override
+                        public void onDismiss(DialogInterface dialog) {
+                        }
+
+                    });
+                    builder.show();
+                }
+                return;
             }
         }
     }
 
-    protected void onPause() {
-        super.onPause();
-//        bluetoothManager.closeDevice(targetMAC);
+    public void startScanning() {
+        System.out.println("start scanning");
+        btScanning = true;
+        deviceIndex = 0;
+        devicesDiscovered.clear();
+        peripheralTextView.setText("");
+        peripheralTextView.append("Started Scanning\n");
+        startScanningButton.setVisibility(View.INVISIBLE);
+        stopScanningButton.setVisibility(View.VISIBLE);
+        AsyncTask.execute(new Runnable() {
+            @Override
+            public void run() {
+                btScanner.startScan(leScanCallback);
+            }
+        });
+
+        mHandler.postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                stopScanning();
+            }
+        }, SCAN_PERIOD);
     }
 
-    protected void setpbar(int a) {
-        ProgressBar pbar = findViewById(R.id.progressBar_upload);
-        pbar.setProgress(a);
+    public void stopScanning() {
+        System.out.println("stopping scanning");
+        peripheralTextView.append("Stopped Scanning\n");
+        btScanning = false;
+        startScanningButton.setVisibility(View.VISIBLE);
+        stopScanningButton.setVisibility(View.INVISIBLE);
+        AsyncTask.execute(new Runnable() {
+            @Override
+            public void run() {
+                btScanner.stopScan(leScanCallback);
+            }
+        });
     }
 
-    @Override
-    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
-        Log.d("Microbit Alarm", "requestCode: " + requestCode);
-        Log.d("Microbit Alarm", "resultCode: " + resultCode);
-        if(requestCode == UPLOADFILEOPEN_REQUESTCODE) {
-            if(resultCode == -1) {
-                Log.d("Microbit Alarm", "Path: " + data.getDataString());
-                String [] command = {"-i", URLFilepath.getPath(getApplicationContext(), data.getData()), "-c:a", "pcm_u8", "-ac", "1", "-f", "u8", "-ar", "32000", "-y", getCacheDir().getAbsolutePath() + "/encoded.raw"};
-                FFmpeg ffmpeg = FFmpeg.getInstance(getApplicationContext());
-                try {
-                    // to execute "ffmpeg -version" command you just need to pass "-version"
-                    ffmpeg.execute(command, new ExecuteBinaryResponseHandler() {
+    public void connectToDeviceSelected() {
+        peripheralTextView.append("Trying to connect to device at index: " + deviceIndexInput.getText() + "\n");
+        int deviceSelected = Integer.parseInt(deviceIndexInput.getText().toString());
+        bluetoothGatt = devicesDiscovered.get(deviceSelected).connectGatt(this, false, btleGattCallback);
+    }
 
-                        @Override
-                        public void onStart() {}
+    public void disconnectDeviceSelected() {
+        peripheralTextView.append("Disconnecting from device\n");
+        bluetoothGatt.disconnect();
+    }
 
-                        @Override
-                        public void onProgress(String message) {
-                            Log.d("Microbit Alarm", message);
-                        }
+    private void displayGattServices(List<BluetoothGattService> gattServices) {
+        if (gattServices == null) return;
 
-                        @Override
-                        public void onFailure(String message) {
-                            Log.d("Microbit Alarm", message);
-                        }
+        // Loops through available GATT Services.
+        for (BluetoothGattService gattService : gattServices) {
 
-                        @Override
-                        public void onSuccess(String message) {
-                            Log.d("Microbit Alarm", message);
-                            tt = new TransmitTask();
-                            tt.execute(data);
-                        }
-
-                        @Override
-                        public void onFinish() {}
-
-                    });
-                } catch (FFmpegCommandAlreadyRunningException e) {
-                    // Handle if FFmpeg is already running
+            final String uuid = gattService.getUuid().toString();
+            System.out.println("Service discovered: " + uuid);
+            MainActivity.this.runOnUiThread(new Runnable() {
+                public void run() {
+                    peripheralTextView.append("Service disovered: "+uuid+"\n");
                 }
-            } else return;
+            });
+            new ArrayList<HashMap<String, String>>();
+            List<BluetoothGattCharacteristic> gattCharacteristics =
+                    gattService.getCharacteristics();
+
+            // Loops through available Characteristics.
+            for (BluetoothGattCharacteristic gattCharacteristic :
+                    gattCharacteristics) {
+
+                final String charUuid = gattCharacteristic.getUuid().toString();
+                System.out.println("Characteristic discovered for service: " + charUuid);
+                MainActivity.this.runOnUiThread(new Runnable() {
+                    public void run() {
+                        peripheralTextView.append("Characteristic discovered for service: "+charUuid+"\n");
+                    }
+                });
+
+            }
         }
     }
 
-    protected void onResume() {
-        super.onResume();
-/*        bluetoothManager.openSerialDevice(targetMAC)
-                .subscribeOn(Schedulers.io())
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(MainActivity.this::onConnected, MainActivity.this::onError);*/
-    }
     @Override
-    protected void onDestroy() {
-        super.onDestroy();
-        bluetoothManager.closeDevice(targetMAC);
+    public void onStart() {
+        super.onStart();
+    }
+
+    @Override
+    public void onStop() {
+        super.onStop();
     }
 }
-
