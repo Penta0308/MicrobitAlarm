@@ -1,12 +1,5 @@
 <resources>
     <string name="app_name">Microbit Alarm</string>
-    <string name="device_name">PENTA0308-E402N</string>
-    <string name="btstate_disconnected">Disconnected</string>
-    <string name="btswitch_connect">Bluetooth </string>
-    <string name="musicbutton_select">Upload</string>
-    <string name="music_opentitle">Open</string>
-    <string name="light_on">On</string>
-    <string name="light_off">Off</string>
-    <string name="alarm">Set Alarm</string>
     <string name="jyplhj">JYP Logo</string>
+    <string name="btstate_disconnected">Disconnected</string>
 </resources>
