@@ -7,9 +7,9 @@
     tools:context=".MainActivity">
 
     <TextView
-        android:id="@+id/textView_btstate"
+        android:id="@+id/PeripheralTextView"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_height="100dp"
         android:background="#6200EE"
         android:text="@string/btstate_disconnected"
         android:textAlignment="center"
@@ -38,53 +38,35 @@
         app:srcCompat="@drawable/jyplogo" />
 
     <Button
-        android:id="@+id/DisconnectButton"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Disconnect"
-        tools:layout_editor_absoluteX="125dp"
-        tools:layout_editor_absoluteY="172dp" />
-
-    <Button
-        android:id="@+id/StopScanButton"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Stop Scan"
-        tools:layout_editor_absoluteX="125dp"
-        tools:layout_editor_absoluteY="220dp" />
-
-    <Button
-        android:id="@+id/ConnectButton"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Connect"
-        tools:layout_editor_absoluteX="36dp"
-        tools:layout_editor_absoluteY="172dp" />
-
-    <Button
         android:id="@+id/StartScanButton"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_marginStart="8dp"
+        android:layout_marginTop="8dp"
         android:text="Scan"
-        tools:layout_editor_absoluteX="36dp"
-        tools:layout_editor_absoluteY="220dp" />
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/ConnectSwitch" />
 
     <EditText
         android:id="@+id/InputIndex"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_marginStart="8dp"
+        android:layout_marginTop="16dp"
         android:ems="10"
         android:inputType="textPersonName"
         android:text="Name"
-        tools:layout_editor_absoluteX="143dp"
-        tools:layout_editor_absoluteY="306dp" />
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/StartScanButton" />
 
-    <TextView
-        android:id="@+id/PeripheralTextView"
+    <Switch
+        android:id="@+id/ConnectSwitch"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="TextView"
-        tools:layout_editor_absoluteX="138dp"
-        tools:layout_editor_absoluteY="432dp" />
+        android:layout_marginStart="8dp"
+        android:layout_marginTop="16dp"
+        android:text="Connect"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/imageView" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>
