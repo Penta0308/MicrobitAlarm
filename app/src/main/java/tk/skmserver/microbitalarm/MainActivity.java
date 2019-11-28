@@ -2,7 +2,6 @@ package tk.skmserver.microbitalarm;
 
 import android.Manifest;
 import android.app.AlertDialog;
-import android.app.Notification;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothGatt;
@@ -19,7 +18,6 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
-import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Handler;
 //import android.support.v7.app.AppCompatActivity;
@@ -37,18 +35,13 @@ import android.widget.TextView;
 //import com.google.android.gms.appindexing.AppIndex;
 //import com.google.android.gms.common.api.GoogleApiClient;
 
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
-import java.util.ListIterator;
 import java.util.Map;
 import java.util.UUID;
 
@@ -57,6 +50,8 @@ public class MainActivity extends AppCompatActivity {
     BluetoothManager btManager;
     BluetoothAdapter btAdapter;
     BluetoothLeScanner btScanner;
+    BluetoothGattCharacteristic btTXCharac;
+    BluetoothGattCharacteristic btRXCharac;
     Button startScanningButton;
     //Button stopScanningButton;
     TextView peripheralTextView;
@@ -354,11 +349,13 @@ public class MainActivity extends AppCompatActivity {
 
                 final String charUuid = gattCharacteristic.getUuid().toString();
                 System.out.println("Characteristic discovered for service: " + charUuid);
-                MainActivity.this.runOnUiThread(new Runnable() {
-                    public void run() {
-                        peripheralTextView.setText("Characteristic discovered for service: " + charUuid);
-                    }
-                });
+                btTXCharac = gattService.getCharacteristic(UUID.fromString("6E400002-B5A3-F393-E0A9-E50E24DCCA9E"));
+                btRXCharac = gattService.getCharacteristic(UUID.fromString("6E400003-B5A3-F393-E0A9-E50E24DCCA9E"));
+                //btTXCharac.setValue();
+                btRXCharac.getValue();
+                bluetoothGatt.writeCharacteristic(btTXCharac);
+                bluetoothGatt.readCharacteristic(btRXCharac);
+                MainActivity.this.runOnUiThread(() -> peripheralTextView.setText("Characteristic discovered for service: " + charUuid));
 
             }
         }
