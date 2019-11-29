@@ -44,14 +44,17 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.util.function.Consumer;
 
 public class MainActivity extends AppCompatActivity {
+
+    ArrayList<String> queue = new ArrayList<String>();
 
     BluetoothManager btManager;
     BluetoothAdapter btAdapter;
     BluetoothLeScanner btScanner;
     BluetoothGattCharacteristic btTXCharac;
-    BluetoothGattCharacteristic btRXCharac;
+//    BluetoothGattCharacteristic btRXCharac;
     Button startScanningButton;
     //Button stopScanningButton;
     TextView peripheralTextView;
@@ -59,7 +62,7 @@ public class MainActivity extends AppCompatActivity {
     private static final int PERMISSION_REQUEST_COARSE_LOCATION = 2;
 
     //public static String SERVICE_STRING = "0000aab0-f845-40fa-995d-658a43feea4c";
-    public static String SERVICE_STRING = "6E400001-B5A3-F393-E0A9-E50E24DCCA9E";
+    public final static String SERVICE_STRING = "6E400001-B5A3-F393-E0A9-E50E24DCCA9E";
     public static UUID UUID_TDCS_SERVICE = UUID.fromString(SERVICE_STRING);
 
     Boolean btScanning = false;
@@ -68,6 +71,7 @@ public class MainActivity extends AppCompatActivity {
     EditText deviceIndexInput;
 //    Button connectToDevice;
 //    Button disconnectDevice;
+    Button SendButton;
     BluetoothGatt bluetoothGatt;
     Switch connectSwitch;
 
@@ -105,6 +109,16 @@ public class MainActivity extends AppCompatActivity {
         peripheralTextView.setMovementMethod(new ScrollingMovementMethod());
         deviceIndexInput = (EditText) findViewById(R.id.InputIndex);
         deviceIndexInput.setText("0");
+
+        SendButton = (Button) findViewById(R.id.SendButton);
+        SendButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                queue.forEach(tq -> {
+                    send(tq);
+                });
+            }
+        });
 
         //connectToDevice = (Button) findViewById(R.id.ConnectButton);
         //connectToDevice.setOnClickListener(new View.OnClickListener() {
@@ -149,6 +163,11 @@ public class MainActivity extends AppCompatActivity {
         if (this.checkSelfPermission(Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             requestPermissions(new String[]{ Manifest.permission.ACCESS_COARSE_LOCATION }, PERMISSION_REQUEST_COARSE_LOCATION);
         }
+    }
+
+    protected boolean send(String d) {
+        btTXCharac.setValue(d);
+        return bluetoothGatt.writeCharacteristic(btTXCharac);
     }
 
     // Device scan callback.
@@ -240,7 +259,7 @@ public class MainActivity extends AppCompatActivity {
     };
 
     private void broadcastUpdate(final String action,
-                                 final BluetoothGattCharacteristic characteristic) {
+                                 @NotNull final BluetoothGattCharacteristic characteristic) {
 
         System.out.println(characteristic.getUuid());
     }
@@ -350,11 +369,8 @@ public class MainActivity extends AppCompatActivity {
                 final String charUuid = gattCharacteristic.getUuid().toString();
                 System.out.println("Characteristic discovered for service: " + charUuid);
                 btTXCharac = gattService.getCharacteristic(UUID.fromString("6E400002-B5A3-F393-E0A9-E50E24DCCA9E"));
-                btRXCharac = gattService.getCharacteristic(UUID.fromString("6E400003-B5A3-F393-E0A9-E50E24DCCA9E"));
-                //btTXCharac.setValue();
-                btRXCharac.getValue();
-                bluetoothGatt.writeCharacteristic(btTXCharac);
-                bluetoothGatt.readCharacteristic(btRXCharac);
+                //btRXCharac = gattService.getCharacteristic(UUID.fromString("6E400003-B5A3-F393-E0A9-E50E24DCCA9E"));
+                send("");
                 MainActivity.this.runOnUiThread(() -> peripheralTextView.setText("Characteristic discovered for service: " + charUuid));
 
             }
