@@ -135,7 +135,7 @@
         app:layout_constraintTop_toTopOf="@+id/Servo2Button" />
 
     <EditText
-        android:id="@+id/DelayText"
+        android:id="@+id/PauseText"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginStart="8dp"
