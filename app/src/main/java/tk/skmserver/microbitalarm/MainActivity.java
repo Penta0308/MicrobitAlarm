@@ -58,9 +58,12 @@ public class MainActivity extends AppCompatActivity {
 //    BluetoothGattCharacteristic btRXCharac;
     Button startScanningButton;
     Button Servo1Button, Servo2Button;
+    Button PauseButton;
+    EditText PauseText, RecordText;
     SeekBar Servo1SeekBar, Servo2SeekBar;
     //Button stopScanningButton;
     TextView peripheralTextView;
+    Switch RecordSwitch;
     private final static int REQUEST_ENABLE_BT = 1;
     private static final int PERMISSION_REQUEST_COARSE_LOCATION = 2;
 
@@ -95,66 +98,49 @@ public class MainActivity extends AppCompatActivity {
     private Handler mHandler = new Handler();
     private static final long SCAN_PERIOD = 5000;
 
-    @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
+            @Override
+            protected void onCreate(Bundle savedInstanceState) {
+                super.onCreate(savedInstanceState);
+                setContentView(R.layout.activity_main);
 
-        connectSwitch = (Switch) findViewById(R.id.ConnectSwitch);
-        connectSwitch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                if(isChecked) connectToDeviceSelected();
-                else disconnectDeviceSelected();
-            }
+                connectSwitch = (Switch) findViewById(R.id.ConnectSwitch);
+                connectSwitch.setOnCheckedChangeListener((buttonView, isChecked) -> {
+                    if(isChecked) connectToDeviceSelected();
+                    else disconnectDeviceSelected();
+                });
+
+                peripheralTextView = (TextView) findViewById(R.id.PeripheralTextView);
+                peripheralTextView.setMovementMethod(new ScrollingMovementMethod());
+                deviceIndexInput = (EditText) findViewById(R.id.InputIndex);
+                deviceIndexInput.setText("0");
+
+                SendButton = (Button) findViewById(R.id.SendButton);
+                SendButton.setOnClickListener(v -> {
+                    queue.forEach(tq -> send(tq));
+                    queue.clear();
         });
 
-        peripheralTextView = (TextView) findViewById(R.id.PeripheralTextView);
-        peripheralTextView.setMovementMethod(new ScrollingMovementMethod());
-        deviceIndexInput = (EditText) findViewById(R.id.InputIndex);
-        deviceIndexInput.setText("0");
-
-        SendButton = (Button) findViewById(R.id.SendButton);
-        SendButton.setOnClickListener(v -> queue.forEach(tq -> {
-            send(tq);
-        }));
-        Servo1SeekBar = (SeekBar) findViewById(R.id.Servo1SeekBar) ;
+        Servo1SeekBar = (SeekBar) findViewById(R.id.Servo1SeekBar);
         Servo1Button = (Button) findViewById(R.id.Servo1Button);
-        Servo1Button.setOnClickListener(v -> queue.add("s" + Integer.toString(Servo1SeekBar.getProgress()) + "\n"));
+        Servo1Button.setOnClickListener(v -> queue.add("s" + Servo1SeekBar.getProgress() + "\n"));
 
-        Servo2SeekBar = (SeekBar) findViewById(R.id.Servo2SeekBar) ;
+        Servo2SeekBar = (SeekBar) findViewById(R.id.Servo2SeekBar);
         Servo2Button = (Button) findViewById(R.id.Servo2Button);
-        Servo2Button.setOnClickListener(v -> queue.add("s" + Integer.toString(Servo2SeekBar.getProgress()) + "\n"));
+        Servo2Button.setOnClickListener(v -> queue.add("s" + Servo2SeekBar.getProgress() + "\n"));
 
-
-        //connectToDevice = (Button) findViewById(R.id.ConnectButton);
-        //connectToDevice.setOnClickListener(new View.OnClickListener() {
-        //    public void onClick(View v) {
-        //        connectToDeviceSelected();
-        //    }
-        //});
-
-        //disconnectDevice = (Button) findViewById(R.id.DisconnectButton);
-        //disconnectDevice.setVisibility(View.INVISIBLE);
-        //disconnectDevice.setOnClickListener(new View.OnClickListener() {
-        //    public void onClick(View v) {
-        //        disconnectDeviceSelected();
-        //    }
-        //});
+        PauseText = (EditText) findViewById(R.id.PauseText);
+        PauseButton = (Button) findViewById(R.id.PauseButton);
+        PauseButton.setOnClickListener(v -> queue.add("p" + PauseText.getText().toString() + "\n"));
 
         startScanningButton = (Button) findViewById(R.id.StartScanButton);
-        startScanningButton.setOnClickListener(new View.OnClickListener() {
-            public void onClick(View v) {
-                startScanning();
-            }
-        });
+        startScanningButton.setOnClickListener(v -> startScanning());
 
-        //stopScanningButton = (Button) findViewById(R.id.StopScanButton);
-        //stopScanningButton.setOnClickListener(new View.OnClickListener() {
-        //    public void onClick(View v) {
-        //        stopScanning();
-        //    }
-        //});
-        //stopScanningButton.setVisibility(View.INVISIBLE);
+        RecordText = (EditText) findViewById(R.id.RecordText);
+        RecordSwitch = (Switch) findViewById(R.id.RecordSwitch);
+        RecordSwitch.setOnCheckedChangeListener((buttonView, isChecked) -> {
+            if(isChecked) queue.add("a" + RecordText.getText().toString() + "\n");
+            else queue.add("e\n");
+        });
 
         btManager = (BluetoothManager) getSystemService(Context.BLUETOOTH_SERVICE);
         btAdapter = btManager.getAdapter();
@@ -172,8 +158,10 @@ public class MainActivity extends AppCompatActivity {
     }
 
     protected boolean send(String d) {
-        btTXCharac.setValue(d);
-        return bluetoothGatt.writeCharacteristic(btTXCharac);
+        peripheralTextView.append(d);
+        return true;
+        //btTXCharac.setValue(d);
+        //return bluetoothGatt.writeCharacteristic(btTXCharac);
     }
 
     // Device scan callback.
