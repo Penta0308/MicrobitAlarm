@@ -28,6 +28,7 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.CompoundButton;
 import android.widget.EditText;
+import android.widget.SeekBar;
 import android.widget.Switch;
 import android.widget.TextView;
 
@@ -56,6 +57,8 @@ public class MainActivity extends AppCompatActivity {
     BluetoothGattCharacteristic btTXCharac;
 //    BluetoothGattCharacteristic btRXCharac;
     Button startScanningButton;
+    Button Servo1Button, Servo2Button;
+    SeekBar Servo1SeekBar, Servo2SeekBar;
     //Button stopScanningButton;
     TextView peripheralTextView;
     private final static int REQUEST_ENABLE_BT = 1;
@@ -111,14 +114,17 @@ public class MainActivity extends AppCompatActivity {
         deviceIndexInput.setText("0");
 
         SendButton = (Button) findViewById(R.id.SendButton);
-        SendButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                queue.forEach(tq -> {
-                    send(tq);
-                });
-            }
-        });
+        SendButton.setOnClickListener(v -> queue.forEach(tq -> {
+            send(tq);
+        }));
+        Servo1SeekBar = (SeekBar) findViewById(R.id.Servo1SeekBar) ;
+        Servo1Button = (Button) findViewById(R.id.Servo1Button);
+        Servo1Button.setOnClickListener(v -> queue.add("s" + Integer.toString(Servo1SeekBar.getProgress()) + "\n"));
+
+        Servo2SeekBar = (SeekBar) findViewById(R.id.Servo2SeekBar) ;
+        Servo2Button = (Button) findViewById(R.id.Servo2Button);
+        Servo2Button.setOnClickListener(v -> queue.add("s" + Integer.toString(Servo2SeekBar.getProgress()) + "\n"));
+
 
         //connectToDevice = (Button) findViewById(R.id.ConnectButton);
         //connectToDevice.setOnClickListener(new View.OnClickListener() {
