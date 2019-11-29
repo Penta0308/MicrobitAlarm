@@ -159,9 +159,9 @@ public class MainActivity extends AppCompatActivity {
 
     protected boolean send(String d) {
         peripheralTextView.append(d);
-        return true;
-        //btTXCharac.setValue(d);
-        //return bluetoothGatt.writeCharacteristic(btTXCharac);
+        //return true;
+        btTXCharac.setValue(d);
+        return bluetoothGatt.writeCharacteristic(btTXCharac);
     }
 
     // Device scan callback.
