@@ -101,7 +101,7 @@
         app:layout_constraintTop_toBottomOf="@+id/SendButton" />
 
     <Button
-        android:id="@+id/servo2Button"
+        android:id="@+id/Servo2Button"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginStart="8dp"
@@ -110,7 +110,7 @@
         app:layout_constraintTop_toBottomOf="@+id/Servo1Button" />
 
     <SeekBar
-        android:id="@+id/Servo1seekBar"
+        android:id="@+id/Servo1SeekBar"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginStart="8dp"
@@ -122,17 +122,17 @@
         app:layout_constraintTop_toTopOf="@+id/Servo1Button" />
 
     <SeekBar
-        android:id="@+id/servo2seekBar"
+        android:id="@+id/Servo2SeekBar"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginStart="8dp"
         android:layout_marginEnd="8dp"
         android:max="180"
         android:progress="180"
-        app:layout_constraintBottom_toBottomOf="@+id/servo2Button"
+        app:layout_constraintBottom_toBottomOf="@+id/Servo2Button"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toEndOf="@+id/servo2Button"
-        app:layout_constraintTop_toTopOf="@+id/servo2Button" />
+        app:layout_constraintStart_toEndOf="@+id/Servo2Button"
+        app:layout_constraintTop_toTopOf="@+id/Servo2Button" />
 
     <EditText
         android:id="@+id/DelayText"
@@ -156,7 +156,7 @@
         android:layout_marginStart="8dp"
         android:text="Pause"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/servo2Button" />
+        app:layout_constraintTop_toBottomOf="@+id/Servo2Button" />
 
     <EditText
         android:id="@+id/RecordText"
