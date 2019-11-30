@@ -1,6 +1,7 @@
 package tk.skmserver.microbitalarm;
 
 import android.Manifest;
+import android.app.Activity;
 import android.app.AlertDialog;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
@@ -20,23 +21,15 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.AsyncTask;
 import android.os.Handler;
-//import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.os.ParcelUuid;
 import android.text.method.ScrollingMovementMethod;
 import android.view.View;
 import android.widget.Button;
-import android.widget.CompoundButton;
 import android.widget.EditText;
 import android.widget.SeekBar;
 import android.widget.Switch;
 import android.widget.TextView;
-
-//import com.google.android.gms.appindexing.Action;
-//import com.google.android.gms.appindexing.AppIndex;
-//import com.google.android.gms.common.api.GoogleApiClient;
-
-import androidx.appcompat.app.AppCompatActivity;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -45,9 +38,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
-import java.util.function.Consumer;
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends Activity {
 
     ArrayList<String> queue = new ArrayList<String>();
 
