@@ -1,2 +1,2 @@
 include ':app'
-rootProject.name='Microbit Alarm'
+rootProject.name='MicrobitAlarm'
