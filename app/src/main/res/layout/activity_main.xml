@@ -1,28 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".MainActivity">
-
-    <TextView
-        android:id="@+id/PeripheralTextView"
-        android:layout_width="match_parent"
-        android:layout_height="100dp"
-        android:background="#6200EE"
-        android:text="@string/btstate_disconnected"
-        android:textAlignment="center"
-        android:textColor="#FFFFFF"
-        android:textSize="18sp"
-        android:textStyle="italic"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent" />
+    tools:context=".MainActivity"
+    android:orientation="vertical">
 
     <ImageView
-        android:id="@+id/imageView"
-        android:layout_width="0dp"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginStart="8dp"
         android:layout_marginTop="8dp"
@@ -32,145 +18,152 @@
         android:contentDescription="@string/jyplhj"
         android:contextClickable="false"
         android:cropToPadding="false"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:srcCompat="@drawable/jyplogo" />
+        android:src="@drawable/jyplogo" />
 
-    <Button
-        android:id="@+id/StartScanButton"
-        android:layout_width="wrap_content"
+    <LinearLayout
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginStart="8dp"
+        android:layout_marginTop="8dp"
+        android:gravity="center"
+        android:orientation="horizontal">
+
+        <Button
+            android:id="@+id/StartScanButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            android:text="Scan"/>
+
+        <Switch
+            android:id="@+id/ConnectSwitch"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="8dp"
+            android:text="Connect "/>
+
+        <EditText
+            android:id="@+id/InputIndex"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            android:layout_marginEnd="8dp"
+            android:ems="10"
+            android:text="Device ID"/>
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
         android:layout_marginTop="16dp"
-        android:text="Scan"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/imageView" />
+        android:gravity="center"
+        android:orientation="horizontal">
 
-    <EditText
-        android:id="@+id/InputIndex"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="8dp"
-        android:layout_marginEnd="8dp"
-        android:ems="10"
-        android:text="Device ID"
-        app:layout_constraintBottom_toBottomOf="@+id/StartScanButton"
-        app:layout_constraintEnd_toStartOf="@+id/ConnectSwitch"
-        app:layout_constraintStart_toEndOf="@+id/StartScanButton"
-        app:layout_constraintTop_toTopOf="@+id/StartScanButton" />
+        <Button
+            android:id="@+id/Servo1Button"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            android:text="ON" />
 
-    <Switch
-        android:id="@+id/ConnectSwitch"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginEnd="8dp"
-        android:text="Connect "
-        app:layout_constraintBottom_toBottomOf="@+id/StartScanButton"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toTopOf="@+id/StartScanButton" />
+        <SeekBar
+            android:id="@+id/Servo1SeekBar"
+            style="@android:style/Widget.Material.Light.SeekBar"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="8dp"
+            android:max="180" />
 
-    <Button
-        android:id="@+id/SendButton"
-        android:layout_width="wrap_content"
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginStart="8dp"
+        android:layout_marginTop="8dp"
+        android:gravity="center"
+        android:orientation="horizontal">
+
+        <Button
+            android:id="@+id/Servo2Button"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            android:text="OFF" />
+
+        <SeekBar
+            android:id="@+id/Servo2SeekBar"
+            style="@android:style/Widget.Material.Light.SeekBar"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="8dp"
+            android:max="180"
+            android:progress="180" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
         android:layout_marginTop="16dp"
-        android:text="Send"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/StartScanButton" />
+        android:gravity="center"
+        android:orientation="horizontal">
 
-    <Switch
-        android:id="@+id/RecordSwitch"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginEnd="8dp"
-        android:text="Record "
-        app:layout_constraintBottom_toBottomOf="@+id/SendButton"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toTopOf="@+id/SendButton" />
+        <Button
+            android:id="@+id/PauseButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            android:text="Pause" />
 
-    <Button
-        android:id="@+id/Servo1Button"
-        android:layout_width="wrap_content"
+        <EditText
+            android:id="@+id/PauseText"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="8dp"
+            android:ems="10"
+            android:inputType="number"
+            android:text="0" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginStart="8dp"
         android:layout_marginTop="16dp"
-        android:text="ON"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/SendButton" />
+        android:layout_marginBottom="16dp"
+        android:gravity="center"
+        android:orientation="horizontal">
 
-    <Button
-        android:id="@+id/Servo2Button"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="8dp"
-        android:text="OFF"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/Servo1Button" />
+        <Switch
+            android:id="@+id/RecordSwitch"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            android:layout_marginEnd="8dp"
+            android:text="Record " />
 
-    <SeekBar
-        android:id="@+id/Servo1SeekBar"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="8dp"
-        android:layout_marginEnd="8dp"
-        android:max="180"
-        app:layout_constraintBottom_toBottomOf="@+id/Servo1Button"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toEndOf="@+id/Servo1Button"
-        app:layout_constraintTop_toTopOf="@+id/Servo1Button" />
+        <EditText
+            android:id="@+id/RecordText"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:ems="10"
+            android:inputType="number"
+            android:text="0" />
 
-    <SeekBar
-        android:id="@+id/Servo2SeekBar"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="8dp"
-        android:layout_marginEnd="8dp"
-        android:max="180"
-        android:progress="180"
-        app:layout_constraintBottom_toBottomOf="@+id/Servo2Button"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toEndOf="@+id/Servo2Button"
-        app:layout_constraintTop_toTopOf="@+id/Servo2Button" />
+        <Button
+            android:id="@+id/SendButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            android:layout_marginEnd="8dp"
+            android:text="Send" />
+    </LinearLayout>
 
-    <EditText
-        android:id="@+id/PauseText"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="8dp"
-        android:layout_marginEnd="8dp"
-        android:ems="10"
-        android:inputType="number"
-        android:text="0"
-        app:layout_constraintBottom_toBottomOf="@+id/PauseButton"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toEndOf="@+id/PauseButton"
-        app:layout_constraintTop_toTopOf="@+id/PauseButton"
-        app:layout_constraintVertical_bias="1.0" />
+    <TextView
+        android:id="@+id/PeripheralTextView"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@android:color/darker_gray"
+        android:text="Disconnected"
+        android:textAlignment="center"
+        android:textColor="@android:color/secondary_text_light"
+        android:textSize="18sp" />
 
-    <Button
-        android:id="@+id/PauseButton"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="8dp"
-        android:text="Pause"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/Servo2Button" />
-
-    <EditText
-        android:id="@+id/RecordText"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="8dp"
-        android:layout_marginEnd="8dp"
-        android:ems="10"
-        android:inputType="number"
-        android:text="0"
-        app:layout_constraintBottom_toBottomOf="@+id/SendButton"
-        app:layout_constraintEnd_toStartOf="@+id/RecordSwitch"
-        app:layout_constraintStart_toEndOf="@+id/SendButton"
-        app:layout_constraintTop_toTopOf="@+id/SendButton"
-        app:layout_constraintVertical_bias="0.0" />
-
-</androidx.constraintlayout.widget.ConstraintLayout>
+</LinearLayout>
