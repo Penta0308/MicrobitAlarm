@@ -1,5 +1,4 @@
 <resources>
     <string name="app_name">Microbit Alarm</string>
     <string name="jyplhj">JYP Logo</string>
-    <string name="btstate_disconnected">Disconnected</string>
 </resources>
